@@ -1,4 +1,4 @@
-/bin/
-/.project
+/target/
 /.classpath
+/.project
 /.settings/

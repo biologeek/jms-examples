@@ -8,23 +8,15 @@ import org.apache.activemq.command.ActiveMQTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.connection.SingleConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.jms.support.destination.DynamicDestinationResolver;
 
 @Configuration
 @EnableJms
 public class Config {
-	
-	@Bean
-	public JmsTemplate template() {
-		JmsTemplate tpl = new JmsTemplate();
-		tpl.setConnectionFactory(facto());		
-		//tpl.setPubSubDomain(true);
-		tpl.setDefaultDestination(topic());
-		
-		return tpl;
-	}
-	
 	
 	@Bean
 	public Destination topic() {
@@ -49,5 +41,19 @@ public class Config {
 	@Bean
 	public Session session() throws JMSException {
 		return activeMQConnectionFactory().createConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
+	}
+	
+	@Bean
+	public DefaultJmsListenerContainerFactory jmsListenerContainerFactory() {
+		DefaultJmsListenerContainerFactory listenerFactory = new DefaultJmsListenerContainerFactory();
+		
+		listenerFactory.setConnectionFactory(facto());
+		listenerFactory.setDestinationResolver(destinationResolver());
+		listenerFactory.setPubSubDomain(true);
+		return listenerFactory;
+	}
+	@Bean
+	public DestinationResolver destinationResolver() {
+		return new DynamicDestinationResolver();
 	}
 }

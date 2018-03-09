@@ -3,12 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>io.biologeek.jms</groupId>
-		<artifactId>jms-senders</artifactId>
+		<artifactId>jms-receiver</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>jms-spring</artifactId>
-
-
+	<artifactId>spring-jms-receiver</artifactId>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
