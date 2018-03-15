@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import com.atomikos.icatch.jta.UserTransactionImp;
@@ -31,13 +33,14 @@ import com.atomikos.jms.AtomikosConnectionFactoryBean;
  */
 public class Config {
 	
+	
 	@Bean
 	/**
 	 * 					
 	 * @return
 	 * @throws SystemException
 	 */
-	public JtaTransactionManager transactionManager() throws SystemException {
+	public JtaTransactionManager jtaTransactionManager() throws SystemException {
 		JtaTransactionManager manager = new JtaTransactionManager();
 		manager.setTransactionManager(atomikosTransactionManager());	
 		manager.setUserTransaction(userTransaction());
@@ -53,8 +56,7 @@ public class Config {
 
 	@Bean(initMethod="init", destroyMethod="close")
 	public UserTransactionManager atomikosTransactionManager() {
-		// TODO Auto-generated method stub
-		return null;
+		return new UserTransactionManager();
 	}
 
 	/* *********************************************** */
@@ -67,6 +69,14 @@ public class Config {
 		bean.setXaDataSource(datasource());
 		bean.setTestQuery("select 1");
 		bean.setUniqueResourceName("AtomikosDataSource");
+		bean.setPoolSize(10);
+		return bean;
+	}
+	
+	public LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean() {
+		LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
+		bean.setDataSource(atomikosDataSourceBean());
+		bean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 		return bean;
 	}
 	
@@ -80,16 +90,6 @@ public class Config {
 		return ds;
 	}
 
-	@Bean
-	public JmsTemplate template() {
-		JmsTemplate tpl = new JmsTemplate();
-		tpl.setConnectionFactory(atomikosConnectionFactoryBean());		
-		//tpl.setPubSubDomain(true);
-		tpl.setDefaultDestination(topic());
-		
-		return tpl;
-	}
-
 
 	/* *********************************************** */
 	/* ****   2ème participant : le broker JMS    **** */
@@ -97,8 +97,18 @@ public class Config {
 	@Bean
 	public AtomikosConnectionFactoryBean atomikosConnectionFactoryBean() {
 		AtomikosConnectionFactoryBean bean = new AtomikosConnectionFactoryBean();
-		bean.setXaConnectionFactory(activeMQConnectionFactory());
+		bean.setXaConnectionFactory(activeMQXAConnectionFactory());
 		return bean;
+	}
+
+	@Bean
+	public JmsTemplate template() {
+		JmsTemplate tpl = new JmsTemplate();
+		tpl.setConnectionFactory(atomikosConnectionFactoryBean());		
+		tpl.setPubSubDomain(true);
+		tpl.setDefaultDestination(topic());
+		
+		return tpl;
 	}
 	
 	@Bean
@@ -107,12 +117,12 @@ public class Config {
 	}
 
 	@Bean
-	public XAConnectionFactory activeMQConnectionFactory() {
+	public XAConnectionFactory activeMQXAConnectionFactory() {
 		return new ActiveMQXAConnectionFactory("tcp://localhost:61616");
 	}
 
 	@Bean
 	public Session session() throws JMSException {
-		return activeMQConnectionFactory().createXAConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
+		return activeMQXAConnectionFactory().createXAConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 }

@@ -1,6 +1,7 @@
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
+import javax.persistence.EntityManager;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.jms.core.JmsTemplate;
@@ -13,11 +14,13 @@ public class MainSender {
 		//ctx.refresh();
 		JmsTemplate tpl = ctx.getBean(JmsTemplate.class);
 
+		final EntityManager em = ctx.getBean(EntityManager.class);
+		
+		em.persist(new io.biologeek.Message(1L, "Coucou Spring Atomikos"));
 		tpl.send(new MessageCreator() {
 
 			public Message createMessage(Session session) throws JMSException {
-				
-				return ctx.getBean(Session.class).createTextMessage("Coucou SPRING");
+				return ctx.getBean(Session.class).createTextMessage(em.find(io.biologeek.Message.class, 1L).getText());
 			}
 		});
 		
