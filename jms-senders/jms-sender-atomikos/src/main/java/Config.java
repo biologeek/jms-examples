@@ -11,10 +11,12 @@ import org.apache.activemq.command.ActiveMQTopic;
 import org.h2.jdbcx.JdbcDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.jta.JtaTransactionManager;
 
 import com.atomikos.icatch.jta.UserTransactionImp;
@@ -31,6 +33,7 @@ import com.atomikos.jms.AtomikosConnectionFactoryBean;
  * @author xavier
  *
  */
+@EnableTransactionManagement
 public class Config {
 	
 	
@@ -55,6 +58,7 @@ public class Config {
 	}
 
 	@Bean(initMethod="init", destroyMethod="close")
+	@DependsOn(value= {"atomikosDataSourceBean", "atomikosConnectionFactoryBean"})
 	public UserTransactionManager atomikosTransactionManager() {
 		return new UserTransactionManager();
 	}
@@ -73,10 +77,12 @@ public class Config {
 		return bean;
 	}
 	
-	public LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean() {
+	@Bean(name="entityManagerFactory")
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
 		bean.setDataSource(atomikosDataSourceBean());
 		bean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+		bean.setPackagesToScan("io.biologeek");
 		return bean;
 	}
 	
@@ -98,6 +104,8 @@ public class Config {
 	public AtomikosConnectionFactoryBean atomikosConnectionFactoryBean() {
 		AtomikosConnectionFactoryBean bean = new AtomikosConnectionFactoryBean();
 		bean.setXaConnectionFactory(activeMQXAConnectionFactory());
+		bean.setUniqueResourceName("atomikosConnectionFactory");
+		bean.setLocalTransactionMode(true);
 		return bean;
 	}
 
@@ -107,7 +115,7 @@ public class Config {
 		tpl.setConnectionFactory(atomikosConnectionFactoryBean());		
 		tpl.setPubSubDomain(true);
 		tpl.setDefaultDestination(topic());
-		
+		tpl.setSessionTransacted(true);
 		return tpl;
 	}
 	
