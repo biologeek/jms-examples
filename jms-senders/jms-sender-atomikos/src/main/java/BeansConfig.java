@@ -29,12 +29,13 @@ import com.atomikos.jms.AtomikosConnectionFactoryBean;
 /**
  * @see https://github.com/nielspeter/atomikos-jta-jdbc-jms-example/blob/master/src/main/resources/applicationContext.xml
  * @see http://download.oracle.com/otndocs/jcp/jta-1.1-spec-oth-JSpec/?submit=Download
+ * @see https://www.javaworld.com/article/2077714/java-web-development/xa-transactions-using-spring.html
  * 
  * @author xavier
  *
  */
 @EnableTransactionManagement
-public class Config {
+public class BeansConfig {
 	
 	
 	@Bean
@@ -64,7 +65,7 @@ public class Config {
 	}
 
 	/* *********************************************** */
-	/* ****       1 er participant : la BDD       **** */
+	/* ****         1st participant : DB          **** */
 	/* *********************************************** */
 	@Bean
 	public AtomikosDataSourceBean atomikosDataSourceBean() {
@@ -98,7 +99,7 @@ public class Config {
 
 
 	/* *********************************************** */
-	/* ****   2ème participant : le broker JMS    **** */
+	/* ****    2nd participant : JMS broker       **** */
 	/* *********************************************** */
 	@Bean
 	public AtomikosConnectionFactoryBean atomikosConnectionFactoryBean() {
@@ -129,8 +130,4 @@ public class Config {
 		return new ActiveMQXAConnectionFactory("tcp://localhost:61616");
 	}
 
-	@Bean
-	public Session session() throws JMSException {
-		return activeMQXAConnectionFactory().createXAConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
-	}
 }

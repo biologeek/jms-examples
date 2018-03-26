@@ -13,7 +13,7 @@ import org.springframework.jms.core.MessageCreator;
 public class MainSender {
 
 	public static void main(String[] args) {
-		final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
+		final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(BeansConfig.class);
 		//ctx.refresh();
 		JmsTemplate tpl = ctx.getBean(JmsTemplate.class);
 
