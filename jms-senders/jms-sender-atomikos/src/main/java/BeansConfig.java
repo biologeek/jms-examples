@@ -1,7 +1,11 @@
+import java.util.Properties;
+
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Session;
 import javax.jms.XAConnectionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.XADataSource;
 import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
@@ -84,10 +88,21 @@ public class BeansConfig {
 		bean.setDataSource(atomikosDataSourceBean());
 		bean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 		bean.setPackagesToScan("io.biologeek");
+		bean.setJpaProperties(jpaProperties());
 		return bean;
 	}
 	
+	@Bean
+	public EntityManager em(EntityManagerFactory entityManagerFactory) {
+		return entityManagerFactory.createEntityManager();
+	}
 	
+	private Properties jpaProperties() {
+		Properties props = new Properties();
+		props.put("hibernate.hbm2ddl.auto", "create-drop");
+		return props;
+	}
+
 	@Bean
 	public XADataSource datasource() {
 		JdbcDataSource ds = new JdbcDataSource();

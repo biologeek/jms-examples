@@ -1,32 +1,24 @@
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
+import java.io.IOException;
+
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 
 @Transactional
 public class MainSender {
 
-	public static void main(String[] args) {
-		final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(BeansConfig.class);
-		//ctx.refresh();
-		JmsTemplate tpl = ctx.getBean(JmsTemplate.class);
-
-		final EntityManager em = ctx.getBean(EntityManagerFactory.class).createEntityManager();
+	public static void main(String[] args) throws IOException {
+		final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(BeansConfig.class, IntegrationConfig.class);
 		
-		em.persist(new io.biologeek.Message(1L, "Coucou Spring Atomikos"));
-		tpl.send(new MessageCreator() {
+		EntityManager em = ctx.getBean(EntityManager.class);
 
-			public Message createMessage(Session session) throws JMSException {
-				return ctx.getBean(Session.class).createTextMessage(em.find(io.biologeek.Message.class, 1L).getText());
-			}
-		});
+		System.out.println("Inserting 2 lines ! ");
+		em.createNativeQuery("INSERT INTO message VALUES (1, 'My text', 0)");
+		em.createNativeQuery("INSERT INTO message VALUES (2, 'My second text', 0)");
 		
+		System.in.read();
+		ctx.close();
 		System.exit(0);
 	}
 }
